@@ -18,8 +18,6 @@ from ..common.trex_types import DEFAULT_PROFILE_ID, ALL_PROFILE_ID
 from .trex_astf_port import ASTFPort
 from .trex_astf_profile import ASTFProfile
 from .topo import ASTFTopologyManager
-from .stats.traffic import CAstfTrafficStats
-from .stats.latency import CAstfLatencyStats
 from ..utils.common import  is_valid_ipv4, is_valid_ipv6
 from ..utils.text_opts import format_text
 from ..astf.trex_astf_exceptions import ASTFErrorBadTG
@@ -90,8 +88,6 @@ class ASTFClient(TRexClient):
                             sync_timeout,
                             async_timeout)
         self.handler = ''
-        self.traffic_stats = CAstfTrafficStats(self.conn.rpc)
-        self.latency_stats = CAstfLatencyStats(self.conn.rpc)
         self.topo_mngr     = ASTFTopologyManager(self)
         self.sync_waiting = False
         self.last_error = ''
@@ -135,8 +131,8 @@ class ASTFClient(TRexClient):
         return self._assign_ports(port_map)
 
     def _on_connect_clear_stats(self):
-        self.traffic_stats.reset()
-        self.latency_stats.reset()
+        # self.traffic_stats.reset()
+        # self.latency_stats.reset()
         with self.ctx.logger.suppress(verbose = "warning"):
             self.clear_stats(ports = self.get_all_ports(), clear_xstats = False, clear_traffic = False)
         return RC_OK()

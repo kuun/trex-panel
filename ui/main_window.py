@@ -4,9 +4,7 @@ import sys
 from PyQt5.QtWidgets import (QApplication, QPushButton,
                              QMessageBox, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow, QMenu, QAction)
 
-os.environ['TREX_EXT_LIBS'] = '../external_libs'
-
-from ui.ConnectDialog import ConnectDialog
+from ui.connect_dialog import ConnectDialog
 
 
 class MainWindow(QMainWindow):

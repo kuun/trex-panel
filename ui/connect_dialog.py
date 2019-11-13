@@ -4,7 +4,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QFormLayout, QLineEdit, QSpinBox, \
     QMessageBox
 
-from trex.astf.trex_astf_client import ASTFClient
+from container import Container
+from service.trex_service import TrexService
 
 
 class ConnectDialog(QDialog):
@@ -56,14 +57,12 @@ class ConnectDialog(QDialog):
         server = self.ip_edit.text()
         rpc_port = self.rpc_port_edit.value()
         zmq_port = self.zmq_port_edit.value()
-        client = ASTFClient(server=server, sync_port=rpc_port, async_port=zmq_port)
+        trex_service: TrexService = Container.trex_service()
         try:
-            client.connect()
-            msg_box = QMessageBox()
-            msg_box.setText('Successfuly')
-            msg_box.exec()
+            trex_service.connect(server, sync_port=rpc_port, async_port=zmq_port)
+            self.close()
         except Exception as e:
             print('failed to connect to TRex server:', traceback.format_exc())
             msg_box = QMessageBox()
-            msg_box.setText('Failed')
+            msg_box.setText('Can not connect to TRex server.')
             msg_box.exec()

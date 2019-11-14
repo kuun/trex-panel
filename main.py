@@ -1,4 +1,7 @@
 import sys
+import os
+
+os.environ['TREX_EXT_LIBS'] = './external_libs'
 
 from PyQt5.QtWidgets import QApplication
 

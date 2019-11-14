@@ -1,47 +1,31 @@
-import os
-import sys
+from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtWidgets import (QMessageBox, QMainWindow, QMenu, QAction,
+                             QDockWidget, QListView, QStackedWidget, QTabWidget)
 
-from PyQt5.QtWidgets import (QApplication, QPushButton,
-                             QMessageBox, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow, QMenu, QAction)
-
+from container import Container
+from service.trex_service import TrexService
 from ui.connect_dialog import ConnectDialog
+from ui.system_info import SystemInfoPage
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.trex_service: TrexService = Container.trex_service()
+        self.trex_service.connected.connect(self.show_system_info_panel)
         self.__init_ui()
 
     def __init_ui(self):
         self.create_menu()
-        okButton = QPushButton('OK')
-        cancelButton = QPushButton('Cancel')
-        
-        hbox = QHBoxLayout()
-        hbox.addStretch(1)
-        hbox.addWidget(okButton)
-        hbox.addWidget(cancelButton)
 
-        grid = QGridLayout()
-        names = ['Cls', 'Bck', '', 'Close', 
-                 '7', '8', '9', '/', 
-                 '4', '5', '6', '*',
-                 '1', '2', '3', '-', 
-                 '0', '.', '=', '+']
-        positions = [(i, j) for i in range(5) for j in range(4)]
-        for position, name in zip(positions, names):
-            if name == '':
-                continue
-            button = QPushButton(name)
-            grid.addWidget(button, *position)
+        dock = QDockWidget(self)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setFeatures(QDockWidget.DockWidgetMovable)
+        dock.setWidget(QListView(self))
+        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
-        vbox = QVBoxLayout()
-        vbox.addStretch(1)
-
-        vbox.addLayout(grid)
-        vbox.addLayout(hbox)
-        
-        self.setLayout(vbox)
+        self.central_widget = QTabWidget(self)
+        self.setCentralWidget(self.central_widget)
 
         self.setMinimumSize(1000, 700)
         self.setWindowTitle('Window with button')
@@ -68,8 +52,12 @@ class MainWindow(QMainWindow):
         else:
             ev.ignore()
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    w = MainWindow()
+    @pyqtSlot()
+    def handle_connected(self):
+        pass
 
-    sys.exit(app.exec_())
+    @pyqtSlot()
+    def show_system_info_panel(self):
+        system_info_page = SystemInfoPage(self)
+        self.central_widget.addTab(system_info_page, self.tr('System info'))
+

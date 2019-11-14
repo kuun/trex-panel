@@ -1,9 +1,11 @@
 from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QMessageBox, QMainWindow, QMenu, QAction,
-                             QDockWidget, QListView, QStackedWidget, QTabWidget)
+                             QDockWidget, QTabWidget, QListWidget, QListWidgetItem)
 
 from container import Container
 from service.trex_service import TrexService
+from trex.astf.trex_astf_client import ASTFClient
 from ui.connect_dialog import ConnectDialog
 from ui.system_info import SystemInfoPage
 
@@ -12,23 +14,24 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.trex_service: TrexService = Container.trex_service()
-        self.trex_service.connected.connect(self.show_system_info_panel)
+        self.trex_service.connected.connect(self.handle_connected)
         self.__init_ui()
 
     def __init_ui(self):
         self.create_menu()
 
-        dock = QDockWidget(self)
+        self.port_list = QListWidget(self)
+        dock = QDockWidget(self.tr('Port list'), self)
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         dock.setFeatures(QDockWidget.DockWidgetMovable)
-        dock.setWidget(QListView(self))
+        dock.setWidget(self.port_list)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
         self.central_widget = QTabWidget(self)
         self.setCentralWidget(self.central_widget)
 
         self.setMinimumSize(1000, 700)
-        self.setWindowTitle('Window with button')
+        self.setWindowTitle('TRex Panel')
         self.show()
 
     def create_menu(self):
@@ -54,10 +57,22 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def handle_connected(self):
-        pass
+        self.build_port_list()
+        self.central_widget.clear()
+        self.add_system_info_page()
 
-    @pyqtSlot()
-    def show_system_info_panel(self):
+    def add_system_info_page(self):
         system_info_page = SystemInfoPage(self)
         self.central_widget.addTab(system_info_page, self.tr('System info'))
 
+    def build_port_list(self):
+        client: ASTFClient = self.trex_service.get_client()
+        info = client.get_server_system_info()
+        ports = info.get('ports')
+        font = QFont()
+        font.setPointSize(14)
+        for index, port in enumerate(ports, start=1):
+            item = QListWidgetItem(self.port_list)
+            item.setData(Qt.EditRole, port)
+            item.setText(self.tr('Port ') + str(index))
+            item.setFont(font)
